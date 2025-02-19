@@ -1,0 +1,125 @@
+@startuml Social Network
+
+package "User Service (PostgreSQL)" {
+  entity user {
+    * user_id: SERIAL <<PK>>
+    --
+    * username: VARCHAR(255) <<UNIQUE>>
+    * password_hash: VARCHAR(255)
+    phone_number: VARCHAR(50)
+    email: VARCHAR(255)
+    created_at: TIMESTAMP
+  }
+  
+  entity user_role {
+    * role_id: SERIAL <<PK>>
+    --
+    * user_id: INTEGER <<FK>>
+    * role: VARCHAR(50)
+    description: TEXT
+    assigned_at: TIMESTAMP
+  }
+  
+  entity user_profile {
+    * profile_id: SERIAL <<PK>>
+    --
+    * user_id: INTEGER <<FK>>
+    first_name: VARCHAR(50)
+    last_name: VARCHAR(50)
+    bio: TEXT
+    location: VARCHAR(100)
+    birthdate: DATE
+  }
+  
+  user ||--|{ user_role: "has"
+  user ||--|| user_profile: "has"
+}
+
+package "Posts & Comments Service (PostgreSQL)" {
+  entity post {
+    * post_id: SERIAL <<PK>>
+    --
+    user_id: INTEGER
+    content: TEXT
+    created_at: TIMESTAMP
+    edited_at: TIMESTAMP
+  }
+  
+  entity comment {
+    * comment_id: SERIAL <<PK>>
+    --
+    * post_id: INTEGER <<FK>>
+    parent_id: INTEGER
+    user_id: INTEGER
+    parent_id: INTEGER
+    content: TEXT
+    created_at: TIMESTAMP
+    edited_at: TIMESTAMP
+  }
+  
+  entity like {
+    * like_id: SERIAL <<PK>>
+    --
+    * post_id: INTEGER <<FK>>
+    * reaction_type: VARCHAR(50) /' like, dislike, etc. '/
+    user_id: INTEGER
+    created_at: TIMESTAMP
+  }
+
+  entity view {
+    * view_id: SERIAL <<PK>>
+    --
+    * post_id: INTEGER <<FK>>
+    user_id: INTEGER
+    view_time: TIMESTAMP
+    device: VARCHAR(50)
+  }
+  
+  post ||--o{ comment: "contains"
+  post ||--o{ like: "has"
+  post ||--o{ view: "has"
+}
+
+package "Statistics Service (ClickHouse)" {
+  entity post_stat {
+    * stat_id: Int64 <<PK>>
+    --
+    * post_id: Int32 <<FK>>
+    likes_count: UInt64
+    comments_count: UInt64
+    views_count: UInt64
+    updated_at : DateTime
+  }
+
+  entity comment_stat {
+    * comment_stat_id: Int64 <<PK>>
+    --
+    * comment_id: Int32 <<FK>>
+    likes_count: UInt64
+    replies_count: UInt64
+    updated_at : DateTime
+  }
+
+  entity user_stat {
+    * user_stat_id: Int64 <<PK>>
+    --
+    * user_id: Int32 <<FK>>
+    posts_created: UInt64
+    posts_liked: UInt64
+    posts_viewed: UInt64
+    comments_created: UInt64
+    comments_liked: UInt64
+    comments_replied: UInt64
+    updated_at : DateTime
+  }
+}
+
+user ||..|| user_stat: "has"
+user ||..o{ post: "post" 
+user ||..o{ comment: "post"
+user ||..o{ like: "create"
+user ||..o{ view: "create"
+post ||..|| post_stat: "has"
+comment ||..|| comment_stat: "has"
+
+@enduml
