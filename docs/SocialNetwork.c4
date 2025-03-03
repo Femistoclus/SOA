@@ -1,0 +1,117 @@
+specification {
+  element actor
+  element system
+  element service
+  element broker
+  element component
+  element database
+}
+
+model {
+  user = actor "User" {}
+
+  social_network = system "Social Network" {
+    ui = component "Web UI" {
+      description "Layer between user and backend services"
+    }
+    api_gateway = service "API Gateway" {
+      description "Orchestrates and routes requests to microservices"
+    }
+    users_service = service "Users Service" {
+      description "Service for user registration, authentication and profile storage"
+      api = component "Users API"
+      db = database "Users DB" {
+        description "Stores users' profile info"
+        style {
+          icon https://icons.terrastruct.com/dev%2Fpostgresql.svg
+          size small
+          textSize lg
+          shape storage
+        }
+      }
+      api -> db "Read/Write"
+    }
+    posts_service = service "Posts & Comments Service" {
+      description "Service for posts and comments"
+      api = component "Posts API"
+      db = database "Posts DB" {
+        description "Stores posts and comments info"
+        style {
+          icon https://icons.terrastruct.com/dev%2Fpostgresql.svg
+          size small
+          textSize lg
+          shape storage
+        }
+      }
+      api -> db "Read/Write"
+    }
+    statistics_service = service "Statistics Service" {
+      description "Service for collecting and processing user activity statistics"
+      api = component "Statistics API"
+      db = database "Statistics DB" {
+        description "Stores statistical data"
+        style {
+          icon https://marketplace-assets.digitalocean.com/logos/clickhouse.svg
+          size small
+          textSize lg
+          shape storage
+        }
+      }
+      api -> db "Write/Query"
+    }
+    event_broker = broker "Event Broker" {
+      posts_topic = component "Posts Topic" {
+        
+      }
+    }
+    ui -> api_gateway "Sends user requests"
+    api_gateway -> posts_service "Routes authentications requests"
+    api_gateway -> users_service "Routes publication requests"
+    api_gateway -> statistics_service "Routes statistics requests"
+    posts_service -> event_broker.posts_topic "Publish posts event"
+    event_broker.posts_topic -> statistics_service "Forward posts event"
+  }
+
+  user -> social_network.ui "Uses"
+}
+
+views {
+  view index {
+    title "Context"
+    include user
+    include social_network with {
+      navigateTo container
+    }
+    style user {
+      color green
+      shape person
+    }
+  }
+  view container {
+    title "Container Diagram"
+    description "Level 2 of the C4 model"
+    include *
+    style * {
+      color secondary
+    }
+    style user {
+      color green
+      shape person
+    }
+    style social_network.api_gateway {
+      color red
+    }
+    style social_network.posts_service.api, social_network.users_service.api, social_network.statistics_service.api {
+      color primary
+    }
+    style social_network.posts_service.db, social_network.users_service.db, social_network.statistics_service.db {
+      color gray
+      shape storage
+    }
+    style event_broker.posts_topic {
+      color muted
+      shape queue
+    }
+    include social_network.**
+  }
+}
