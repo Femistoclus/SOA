@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+  title: User Authentication API
+  description: API for user registration and authentication
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+paths:
+  /api/users/register:
+    post:
+      summary: Register a new user
+      description: Create a new user account with username, email, and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  description: User's unique username
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  description: User's password (min 8 characters)
+                  example: Password123
+                phone_number:
+                  type: string
+                  description: User's phone number (optional)
+                  example: "+12345678901"
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+                  user_id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: johndoe
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Validation error
+                  errors:
+                    type: object
+                    example:
+                      username: ["Username must be at least 4 characters long"]
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Registration failed
+                  error:
+                    type: string
+  
+  /api/users/login:
+    post:
+      summary: User login
+      description: Authenticate a user with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  format: password
+                  example: Password123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  user_id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: johndoe
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid username or password
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login failed
+                  error:
+                    type: string
+  
+  /api/users/profile:
+    get:
+      summary: Get user profile
+      description: Get the profile information of the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: johndoe
+                  email:
+                    type: string
+                    example: john@example.com
+                  phone_number:
+                    type: string
+                    example: "+12345678901"
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2023-01-01T12:00:00Z"
+                  updated_at:
+                    type: string
+                    format: date-time
+                    example: "2023-01-01T12:00:00Z"
+                  first_name:
+                    type: string
+                    example: John
+                  last_name:
+                    type: string
+                    example: Doe
+                  birthdate:
+                    type: string
+                    format: date
+                    example: "1990-01-01"
+                  bio:
+                    type: string
+                    example: "Software developer with a passion for APIs"
+                  location:
+                    type: string
+                    example: "New York, USA"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Authentication required
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to get profile
+                  error:
+                    type: string
+    
+    put:
+      summary: Update user profile
+      description: Update the profile information of the authenticated user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: John
+                last_name:
+                  type: string
+                  example: Doe
+                birthdate:
+                  type: string
+                  format: date
+                  example: "1990-01-01"
+                bio:
+                  type: string
+                  example: "Software developer with a passion for APIs"
+                location:
+                  type: string
+                  example: "New York, USA"
+                email:
+                  type: string
+                  format: email
+                  example: "john.updated@example.com"
+                phone_number:
+                  type: string
+                  example: "+12345678901"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profile updated successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Validation error
+                  errors:
+                    type: object
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Authentication required
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to update profile
+                  error:
+                    type: string
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

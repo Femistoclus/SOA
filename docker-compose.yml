@@ -1,0 +1,53 @@
+services:
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - USER_SERVICE_URL=http://user-service:5001
+    depends_on:
+      - user-service
+    networks:
+      - app-network
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "5001:5001"
+    environment:
+      - JWT_SECRET_KEY=3560b72deb95e4162e602f3c60c1038536ff177346c7e0c903014a66b485dc4d
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/users
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  db:
+    image: postgres:14-alpine
+    container_name: postgres-db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=users
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

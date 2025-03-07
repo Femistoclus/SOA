@@ -1,4 +1,4 @@
-# Posts & Comments Service
+# API Gateway Service
 
 ## Зона ответственности
 - Принимает запросы от UI и перенаправляет их в другие сервисы: Posts & Comments Service, Statistics Service, Users Service
