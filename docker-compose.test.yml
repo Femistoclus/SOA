@@ -1,0 +1,12 @@
+services:
+  user-service-tests:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile.test
+
+  api-gateway-tests:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile.test
+    depends_on:
+      - user-service-tests
