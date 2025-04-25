@@ -1,11 +1,15 @@
 services:
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     ports:
       - "5000:5000"
     environment:
+      - JWT_SECRET_KEY=3560b72deb95e4162e602f3c60c1038536ff177346c7e0c903014a66b485dc4d
       - USER_SERVICE_URL=http://user-service:5001
+      - POST_SERVICE_GRPC=post-service:50051
     depends_on:
       - user-service
     networks:
@@ -18,16 +22,33 @@ services:
       - "5001:5001"
     environment:
       - JWT_SECRET_KEY=3560b72deb95e4162e602f3c60c1038536ff177346c7e0c903014a66b485dc4d
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/users
+      - DATABASE_URL=postgresql://postgres:postgres@user-db:5432/users
     depends_on:
-      db:
+      user-db:
         condition: service_healthy
     networks:
       - app-network
 
-  db:
+  post-service:
+    build:
+      context: .
+      dockerfile: post-service/Dockerfile
+    container_name: post-service
+    ports:
+      - "50051:50051"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@post-db:5432/posts
+    volumes:
+      - ./proto:/app/proto
+    depends_on:
+      post-db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  user-db:
     image: postgres:14-alpine
-    container_name: postgres-db
+    container_name: user-db
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
@@ -45,9 +66,30 @@ services:
     networks:
       - app-network
 
+  post-db:
+    image: postgres:14-alpine
+    container_name: post-db
+    volumes:
+      - post_postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=posts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+
+
 networks:
   app-network:
     driver: bridge
 
 volumes:
   postgres_data:
+  post_postgres_data:

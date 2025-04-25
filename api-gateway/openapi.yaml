@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: User Authentication API
-  description: API for user registration and authentication
+  title: Social Network API
+  description: API for user authentication and post management
   version: 1.0.0
 servers:
   - url: http://localhost:5000
@@ -16,77 +16,20 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - username
-                - email
-                - password
-              properties:
-                username:
-                  type: string
-                  description: User's unique username
-                  example: johndoe
-                email:
-                  type: string
-                  format: email
-                  description: User's email address
-                  example: john@example.com
-                password:
-                  type: string
-                  format: password
-                  description: User's password (min 8 characters)
-                  example: Password123
-                phone_number:
-                  type: string
-                  description: User's phone number (optional)
-                  example: "+12345678901"
+              $ref: '#/components/schemas/UserRegister'
       responses:
         '201':
           description: User registered successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User registered successfully
-                  user_id:
-                    type: integer
-                    example: 1
-                  username:
-                    type: string
-                    example: johndoe
-                  access_token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                $ref: '#/components/schemas/RegisterResponse'
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Validation error
-                  errors:
-                    type: object
-                    example:
-                      username: ["Username must be at least 4 characters long"]
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Registration failed
-                  error:
-                    type: string
-  
+                $ref: '#/components/schemas/ErrorResponse'
   /api/users/login:
     post:
       summary: User login
@@ -96,61 +39,20 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - username
-                - password
-              properties:
-                username:
-                  type: string
-                  example: johndoe
-                password:
-                  type: string
-                  format: password
-                  example: Password123
+              $ref: '#/components/schemas/UserLogin'
       responses:
         '200':
           description: Login successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Login successful
-                  user_id:
-                    type: integer
-                    example: 1
-                  username:
-                    type: string
-                    example: johndoe
-                  access_token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                $ref: '#/components/schemas/LoginResponse'
         '401':
           description: Authentication failed
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Invalid username or password
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Login failed
-                  error:
-                    type: string
-  
+                $ref: '#/components/schemas/ErrorResponse'
   /api/users/profile:
     get:
       summary: Get user profile
@@ -163,77 +65,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    example: 1
-                  username:
-                    type: string
-                    example: johndoe
-                  email:
-                    type: string
-                    example: john@example.com
-                  phone_number:
-                    type: string
-                    example: "+12345678901"
-                  created_at:
-                    type: string
-                    format: date-time
-                    example: "2023-01-01T12:00:00Z"
-                  updated_at:
-                    type: string
-                    format: date-time
-                    example: "2023-01-01T12:00:00Z"
-                  first_name:
-                    type: string
-                    example: John
-                  last_name:
-                    type: string
-                    example: Doe
-                  birthdate:
-                    type: string
-                    format: date
-                    example: "1990-01-01"
-                  bio:
-                    type: string
-                    example: "Software developer with a passion for APIs"
-                  location:
-                    type: string
-                    example: "New York, USA"
+                $ref: '#/components/schemas/UserProfile'
         '401':
           description: Authentication required
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Authentication required
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User not found
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Failed to get profile
-                  error:
-                    type: string
-    
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       summary: Update user profile
       description: Update the profile information of the authenticated user
@@ -244,89 +82,500 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                first_name:
-                  type: string
-                  example: John
-                last_name:
-                  type: string
-                  example: Doe
-                birthdate:
-                  type: string
-                  format: date
-                  example: "1990-01-01"
-                bio:
-                  type: string
-                  example: "Software developer with a passion for APIs"
-                location:
-                  type: string
-                  example: "New York, USA"
-                email:
-                  type: string
-                  format: email
-                  example: "john.updated@example.com"
-                phone_number:
-                  type: string
-                  example: "+12345678901"
+              $ref: '#/components/schemas/UserProfileUpdate'
       responses:
         '200':
           description: Profile updated successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Profile updated successfully
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Validation error
-                  errors:
-                    type: object
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Authentication required
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Authentication required
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/posts:
+    post:
+      summary: Create a new post
+      description: Create a new post in the social network
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePost'
+      responses:
+        '201':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List posts
+      description: Get a paginated list of posts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number (starting from 1)
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of posts per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+        - name: only_own
+          in: query
+          description: If true, return only the user's own posts
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: tags
+          in: query
+          description: Filter posts by tags
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostList'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/posts/{postId}:
+    get:
+      summary: Get post by ID
+      description: Get a specific post by its ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post to retrieve
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: User not found
+          description: Post not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User not found
-        '500':
-          description: Internal server error
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update post
+      description: Update an existing post
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post to update
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePost'
+      responses:
+        '200':
+          description: Post updated successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Failed to update profile
-                  error:
-                    type: string
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete post
+      description: Delete an existing post
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Post deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    UserRegister:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          description: User's unique username
+          example: johndoe
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: john@example.com
+        password:
+          type: string
+          format: password
+          description: User's password
+          example: Password123
+        phone_number:
+          type: string
+          description: User's phone number (optional)
+          example: "+12345678901"
+    UserLogin:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: johndoe
+        password:
+          type: string
+          format: password
+          example: Password123
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        phone_number:
+          type: string
+          example: "+12345678901"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T12:00:00Z"
+        first_name:
+          type: string
+          example: John
+        last_name:
+          type: string
+          example: Doe
+        birthdate:
+          type: string
+          format: date
+          example: "1990-01-01"
+        bio:
+          type: string
+          example: "Software developer with a passion for APIs"
+        location:
+          type: string
+          example: "New York, USA"
+    UserProfileUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: John
+        last_name:
+          type: string
+          example: Doe
+        birthdate:
+          type: string
+          format: date
+          example: "1990-01-01"
+        bio:
+          type: string
+          example: "Software developer"
+        location:
+          type: string
+          example: "New York, USA"
+        email:
+          type: string
+          format: email
+          example: "john.updated@example.com"
+        phone_number:
+          type: string
+          example: "+19876543210"
+    CreatePost:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+          description: Title of the post
+          example: "My First Post"
+        description:
+          type: string
+          description: Content of the post
+          example: "This is the content of my first post in the social network."
+        is_private:
+          type: boolean
+          description: If true, only the creator can see the post
+          default: false
+          example: false
+        tags:
+          type: array
+          description: List of tags for the post
+          items:
+            type: string
+          example: ["tech", "programming", "api"]
+    UpdatePost:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the post
+          example: "Updated Post Title"
+        description:
+          type: string
+          description: Content of the post
+          example: "Updated content of my post."
+        is_private:
+          type: boolean
+          description: If true, only the creator can see the post
+          example: true
+        tags:
+          type: array
+          description: List of tags for the post
+          items:
+            type: string
+          example: ["tech", "updated", "api"]
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the post
+          example: 1
+        title:
+          type: string
+          description: Title of the post
+          example: "My First Post"
+        description:
+          type: string
+          description: Content of the post
+          example: "This is the content of my first post."
+        creator_id:
+          type: integer
+          description: ID of the user who created the post
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+          description: Date and time when the post was created
+          example: "2023-01-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Date and time when the post was last updated
+          example: "2023-01-01T12:00:00Z"
+        is_private:
+          type: boolean
+          description: If true, only the creator can see the post
+          example: false
+        tags:
+          type: array
+          description: List of tags for the post
+          items:
+            type: string
+          example: ["tech", "programming", "api"]
+    PostList:
+      type: object
+      properties:
+        posts:
+          type: array
+          description: List of posts
+          items:
+            $ref: '#/components/schemas/Post'
+        total_count:
+          type: integer
+          description: Total number of posts matching the criteria
+          example: 100
+        total_pages:
+          type: integer
+          description: Total number of pages
+          example: 10
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        per_page:
+          type: integer
+          description: Number of posts per page
+          example: 10
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "User registered successfully"
+        user_id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "johndoe"
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login successful"
+        user_id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "johndoe"
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Operation successful"
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Error occurred"
+        errors:
+          type: object
+          example: {"field": ["Error description"]}

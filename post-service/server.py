@@ -1,4 +1,6 @@
 import grpc
+import logging
+import sys
 from concurrent import futures
 from sqlalchemy.exc import SQLAlchemyError
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -7,9 +9,17 @@ from google.protobuf.empty_pb2 import Empty
 import post_service_pb2
 import post_service_pb2_grpc
 
-from models import Post, Tag, Session, create_tables
+from models.post import Post, Tag, Session, create_tables
 
 MAX_WORKERS = 10
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+
+logger = logging.getLogger(__name__)
 
 
 class PostServiceServicer(post_service_pb2_grpc.PostServiceServicer):
@@ -108,9 +118,7 @@ class PostServiceServicer(post_service_pb2_grpc.PostServiceServicer):
         session = Session()
         try:
             page = max(1, request.page)
-            per_page = min(
-                max(1, request.per_page), 100
-            )
+            per_page = min(max(1, request.per_page), 100)
 
             query = session.query(Post)
 
@@ -270,9 +278,10 @@ def serve():
 
     server.add_insecure_port("[::]:50051")
     server.start()
-    print("Post service started on port 50051")
+    logger.info("Post service started on port 50051")
 
     server.wait_for_termination()
+
 
 if __name__ == "__main__":
     serve()

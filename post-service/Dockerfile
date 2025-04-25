@@ -2,7 +2,7 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-COPY api-gateway/requirements.txt .
+COPY post-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY proto/ /app/proto/
@@ -12,8 +12,6 @@ RUN python -m grpc_tools.protoc \
     --grpc_python_out=/app \
     /app/proto/post_service.proto
 
-COPY api-gateway/ .
+COPY post-service/ .
 
-EXPOSE 5000
-
-CMD ["python", "app.py"]
+CMD ["python", "server.py"]
