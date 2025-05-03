@@ -5,8 +5,8 @@ import re
 class CreatePostSchema(Schema):
     title = fields.String(required=True)
     description = fields.String(required=True)
-    is_private = fields.Boolean(default=False)
-    tags = fields.List(fields.String(), default=[])
+    is_private = fields.Boolean(dump_default=False)
+    tags = fields.List(fields.String(), dump_default=[])
 
     @validates("title")
     def validate_title(self, value):
@@ -64,10 +64,10 @@ class UpdatePostSchema(Schema):
 
 
 class ListPostsSchema(Schema):
-    page = fields.Integer(default=1)
-    per_page = fields.Integer(default=10)
-    only_own = fields.Boolean(default=False)
-    tags = fields.List(fields.String(), default=[])
+    page = fields.Integer(dump_default=1)
+    per_page = fields.Integer(dump_default=10)
+    only_own = fields.Boolean(dump_default=False)
+    tags = fields.List(fields.String(), dump_default=[])
 
     @validates("page")
     def validate_page(self, value):

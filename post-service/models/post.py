@@ -7,9 +7,9 @@ from sqlalchemy import (
     Table,
     ForeignKey,
     create_engine,
+    UniqueConstraint
 )
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker, declarative_base
 from datetime import datetime
 import os
 
@@ -42,11 +42,45 @@ class Post(Base):
     title = Column(String(255), nullable=False)
     description = Column(String(2000), nullable=False)
     creator_id = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     is_private = Column(Boolean, default=False)
 
     tags = relationship("Tag", secondary=post_tags, backref="posts")
+
+
+class PostView(Base):
+    __tablename__ = "post_views"
+
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    viewed_at = Column(DateTime, default=datetime.now)
+
+    post = relationship("Post")
+
+
+class PostLike(Base):
+    __tablename__ = "post_likes"
+
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    liked_at = Column(DateTime, default=datetime.now)
+
+    post = relationship("Post")
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    text = Column(String(1000), nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+
+    post = relationship("Post")
 
 
 def create_tables():

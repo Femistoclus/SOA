@@ -6,8 +6,8 @@ services:
 
   api-gateway-tests:
     build:
-      context: ./api-gateway
-      dockerfile: Dockerfile.test
+      context: .
+      dockerfile: api-gateway/Dockerfile.test
     depends_on:
       - user-service-tests
 

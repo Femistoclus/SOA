@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY post-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install pytest pytest-cov pytest-mock
+RUN pip install pytest pytest-cov mock
 
 COPY proto/ /app/proto/
 RUN python -m grpc_tools.protoc \
@@ -18,4 +18,4 @@ COPY post-service/ .
 ENV PYTHONPATH=/app
 ENV DATABASE_URL=sqlite:///:memory:
 
-CMD ["pytest", "-xvs", "tests/"]
+CMD ["python", "-m", "unittest", "discover", "tests"]

@@ -5,7 +5,12 @@ from flask_jwt_extended import JWTManager, get_jwt_identity
 
 from config import Config
 from utils.validators import CreatePostSchema, UpdatePostSchema, ListPostsSchema
-from utils.utils import token_required, get_post_service_stub, proto_post_to_dict
+from utils.utils import (
+    proto_timestamp_to_datetime,
+    token_required,
+    get_post_service_stub,
+    proto_post_to_dict,
+)
 
 import post_service_pb2
 
@@ -232,6 +237,164 @@ def create_app(config_class=Config):
                 )
             return (
                 jsonify({"message": f"Error deleting post: {e.details()}"}),
+                status_code,
+            )
+        except Exception as e:
+            return jsonify({"message": f"Error: {str(e)}"}), 500
+
+    @app.route("/api/posts/<int:post_id>/view", methods=["POST"])
+    @token_required
+    def view_post(post_id):
+        try:
+            user_id = get_jwt_identity()
+            stub = get_post_service_stub()
+
+            grpc_request = post_service_pb2.ViewPostRequest(
+                post_id=post_id, viewer_id=user_id
+            )
+
+            response = stub.ViewPost(grpc_request)
+
+            return (
+                jsonify(
+                    {"success": response.success, "views_count": response.views_count}
+                ),
+                200,
+            )
+        except grpc.RpcError as e:
+            status_code = e.code().value[0]
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                return jsonify({"message": "Post not found"}), 404
+            return (
+                jsonify({"message": f"Error viewing post: {e.details()}"}),
+                status_code,
+            )
+        except Exception as e:
+            return jsonify({"message": f"Error: {str(e)}"}), 500
+
+    @app.route("/api/posts/<int:post_id>/like", methods=["POST"])
+    @token_required
+    def like_post(post_id):
+        try:
+            user_id = get_jwt_identity()
+            stub = get_post_service_stub()
+
+            grpc_request = post_service_pb2.LikePostRequest(
+                post_id=post_id, user_id=user_id
+            )
+
+            response = stub.LikePost(grpc_request)
+
+            return (
+                jsonify(
+                    {"success": response.success, "likes_count": response.likes_count}
+                ),
+                200,
+            )
+        except grpc.RpcError as e:
+            status_code = e.code().value[0]
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                return jsonify({"message": "Post not found"}), 404
+            return (
+                jsonify({"message": f"Error liking post: {e.details()}"}),
+                status_code,
+            )
+        except Exception as e:
+            return jsonify({"message": f"Error: {str(e)}"}), 500
+
+    @app.route("/api/posts/<int:post_id>/comments", methods=["POST"])
+    @token_required
+    def add_comment(post_id):
+        try:
+            user_id = get_jwt_identity()
+
+            data = request.get_json()
+            if not data or not "text" in data or not data["text"].strip():
+                return jsonify({"message": "Comment text is required"}), 400
+
+            stub = get_post_service_stub()
+
+            grpc_request = post_service_pb2.AddCommentRequest(
+                post_id=post_id, user_id=user_id, text=data["text"]
+            )
+
+            response = stub.AddComment(grpc_request)
+
+            created_at = proto_timestamp_to_datetime(response.created_at)
+
+            return (
+                jsonify(
+                    {
+                        "id": response.id,
+                        "post_id": response.post_id,
+                        "user_id": response.user_id,
+                        "text": response.text,
+                        "created_at": created_at,
+                    }
+                ),
+                201,
+            )
+        except grpc.RpcError as e:
+            status_code = e.code().value[0]
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                return jsonify({"message": "Post not found"}), 404
+            return (
+                jsonify({"message": f"Error adding comment: {e.details()}"}),
+                status_code,
+            )
+        except Exception as e:
+            return jsonify({"message": f"Error: {str(e)}"}), 500
+
+    @app.route("/api/posts/<int:post_id>/comments", methods=["GET"])
+    @token_required
+    def get_comments(post_id):
+        try:
+            page = request.args.get("page", 1, type=int)
+            per_page = request.args.get("per_page", 10, type=int)
+
+            if page < 1:
+                return jsonify({"message": "Page must be a positive integer"}), 400
+            if per_page < 1 or per_page > 100:
+                return jsonify({"message": "per_page must be between 1 and 100"}), 400
+
+            stub = get_post_service_stub()
+
+            grpc_request = post_service_pb2.GetCommentsRequest(
+                post_id=post_id, page=page, per_page=per_page
+            )
+
+            response = stub.GetComments(grpc_request)
+
+            comments = []
+            for comment in response.comments:
+                comments.append(
+                    {
+                        "id": comment.id,
+                        "post_id": comment.post_id,
+                        "user_id": comment.user_id,
+                        "text": comment.text,
+                        "created_at": proto_timestamp_to_datetime(comment.created_at),
+                    }
+                )
+
+            return (
+                jsonify(
+                    {
+                        "comments": comments,
+                        "total_count": response.total_count,
+                        "total_pages": response.total_pages,
+                        "page": page,
+                        "per_page": per_page,
+                    }
+                ),
+                200,
+            )
+        except grpc.RpcError as e:
+            status_code = e.code().value[0]
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                return jsonify({"message": "Post not found"}), 404
+            return (
+                jsonify({"message": f"Error getting comments: {e.details()}"}),
                 status_code,
             )
         except Exception as e:
