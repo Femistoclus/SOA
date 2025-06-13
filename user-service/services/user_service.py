@@ -2,6 +2,15 @@ from models.user import User, UserProfile, db
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
+from kafka import KafkaProducer
+import json
+from datetime import datetime
+
+producer = KafkaProducer(
+    bootstrap_servers='kafka:9092',
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
+
 
 class UserService:
     """
@@ -24,6 +33,14 @@ class UserService:
             db.session.add(user)
             db.session.add(profile)
             db.session.commit()
+
+            event = {
+                'event_type': 'user_registered',
+                'user_id': user.id,
+                'username': user.username,
+                'registration_date': datetime.now().isoformat()
+            }
+            producer.send('user-events', event)
 
             return user
         except IntegrityError:

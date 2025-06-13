@@ -2,9 +2,8 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-COPY api-gateway/requirements.txt .
+COPY post-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install pytest pytest-cov pytest-mock
 
 COPY proto/ /app/proto/
 RUN python -m grpc_tools.protoc \
@@ -13,6 +12,6 @@ RUN python -m grpc_tools.protoc \
     --grpc_python_out=/app \
     /app/proto/post_service.proto
 
-COPY api-gateway/ .
+COPY post-service/ .
 
-CMD ["pytest", "-xvs", "tests/"]
+CMD ["python", "server.py"]
